@@ -28,6 +28,13 @@ connectDB().then(() => {
     });
 });
 
+app.use("/api/wakeup", async (req, res) => {
+    try {
+        return res.status(200).json({ message: "Socket is Ready to connect", code: "SOCKET_READY_TO_CONNECT" });
+    } catch (error) {
+        console.log("error:/api/wakeup", error);
+    }
+});
 app.use("/api/socket", async (req, res) => {
     if (res?.socket?.server?.io) {
         console.log("socket.io already running...");
