@@ -59,9 +59,7 @@ app.use("/api/socket", async (req, res) => {
             console.log(`${socket?.id} joined chat ${chatId}`);
         });
 
-        socket?.on("sendMessage", async ({ chatId, message, userId }) => {
-            console.log("1------", userId);
-            console.log("1------1", userId);
+        socket?.on("sendMessage", async ({ chatId, message, userId, nonce }) => {
             const newMessage = await chatModel.findOneAndUpdate(
                 { _id: chatId },
                 {
@@ -70,19 +68,19 @@ app.use("/api/socket", async (req, res) => {
                             message,
                             userId,
                             time: await new String(Date.now()),
+                            nonce,
                         },
                     },
                 },
                 { new: true, upsert: false, runValidators: true }
             );
-            console.log("2------");
 
             await io?.to(chatId).emit("receiveMessage", {
                 message,
                 userId,
                 time: await new String(Date.now()),
+                nonce
             });
-            console.log("3------");
         });
     });
     res.end();

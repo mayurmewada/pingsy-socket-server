@@ -3,7 +3,7 @@ const { v4: uuidv4 } = require("uuid");
 
 const chatMessageSchema = new mongoose.Schema({
     message: {
-        type: String,
+        type: Object,
         required: true,
     },
     userId: {
@@ -12,6 +12,10 @@ const chatMessageSchema = new mongoose.Schema({
     },
     time: {
         type: String,
+        required: true,
+    },
+    nonce: {
+        type: Object,
         required: true,
     },
 });
