@@ -35,9 +35,37 @@ app.use("/api/wakeup", async (req, res) => {
         console.log("error:/api/wakeup", error);
     }
 });
-app.use("/api/socket", async (req, res) => {
-    if (res?.socket?.server?.io) {
-        console.log("socket.io already running...");
+app.use("/api/socket/refresh-friends", async (req, res) => {
+    if (res?.socket?.server?.io?._path === "/api/socket/refresh-friends") {
+        res.end();
+        return;
+    }
+
+    console.log("starting refresh socket.io server...");
+
+    const io = new Server(res?.socket?.server, {
+        path: "/api/socket/refresh-friends",
+        addTrailingSlash: false,
+        cors: { origin: "*" },
+    });
+    res.socket.server.io = io;
+
+    io?.on("connection", (socket) => {
+
+        socket?.on("joinRoom", ({ userId }) => {
+            socket.join(userId);
+        });
+
+        socket?.on("sendMessage", async ({ userId }) => {
+            await io?.to(userId).emit("receiveMessage", { refresh: true });
+        });
+    });
+    res.end();
+});
+
+app.use("/api/socket/chat", async (req, res) => {
+    if (res?.socket?.server?.io === "/api/socket/chat") {
+        console.log("socket.io already running...", res?.socket?.server);
         res.end();
         return;
     }
@@ -45,7 +73,7 @@ app.use("/api/socket", async (req, res) => {
     console.log("starting socket.io server...");
 
     const io = new Server(res?.socket?.server, {
-        path: "/api/socket",
+        path: "/api/socket/chat",
         addTrailingSlash: false,
         cors: { origin: "*" },
     });
@@ -79,7 +107,7 @@ app.use("/api/socket", async (req, res) => {
                 message,
                 userId,
                 time: await new String(Date.now()),
-                nonce
+                nonce,
             });
         });
     });
