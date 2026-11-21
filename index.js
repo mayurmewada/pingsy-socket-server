@@ -56,8 +56,17 @@ app.use("/api/socket/refresh-friends", async (req, res) => {
             socket.join(userId);
         });
 
-        socket?.on("sendMessage", async ({ userId }) => {
-            await io?.to(userId).emit("receiveMessage", { refresh: true });
+        socket?.on("sendMessage", async ({ userId, senderId, refreshFriendRequests }) => {
+            if (userId) {
+                if (refreshFriendRequests) {
+                    await io?.to(userId).emit("receiveMessage", { refreshFriendRequests: true });
+                } else {
+                    await io?.to(userId).emit("receiveMessage", { refresh: true });
+                }
+            }
+            if (senderId) {
+                await io?.to(senderId).emit("receiveMessage", { refresh: true });
+            }
         });
     });
     res.end();
